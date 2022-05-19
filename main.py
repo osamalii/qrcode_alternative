@@ -1,4 +1,6 @@
 import math
+import struct
+
 import numpy as np
 import PySimpleGUI as sg
 from tkinter import *
@@ -44,12 +46,11 @@ def calculate_cell_size(l, strl):
     return l / strl
 
 
-def create_matrix(string_length, sqc):
+def create_matrix(sqc):
     listsqc = list(sqc)
-    print(listsqc)
     k = 0
-    matrix_size = math.floor(math.sqrt(string_length * 12)) + 2
-    print(matrix_size)
+    matrix_size = math.floor(math.sqrt(len(listsqc))) + 2
+    print("matrix size", matrix_size)
     matrix = np.zeros((matrix_size, matrix_size))
     for i in range(matrix_size):
         for j in range(matrix_size):
@@ -58,8 +59,8 @@ def create_matrix(string_length, sqc):
             if i == 0 or i == matrix_size - 1:
                 matrix[i][j] = 0
         matrix[0][0] = 1
-    for i in range(1, matrix_size-1,1):
-        for j in range(1, matrix_size-1,1):
+    for i in range(1, matrix_size - 1, 1):
+        for j in range(1, matrix_size - 1, 1):
             if k <= len(listsqc):
                 matrix[i][j] = listsqc[k]
                 k = k + 1
@@ -68,6 +69,7 @@ def create_matrix(string_length, sqc):
 
     return matrix
 
+
 def draw_matrix(matrix, can):
     cell_size = calculate_cell_size(500, len(matrix))
     print(cell_size)
@@ -75,10 +77,10 @@ def draw_matrix(matrix, can):
     for lg in range(len(matrix)):
         for c in range(len(matrix)):
             if matrix[lg][c] == 1:
-                can.create_rectangle(lg * cell_size, c * cell_size, (lg+1)*cell_size, (c+1)*cell_size, fill="black")
-            elif matrix[lg][c] == 0:
-                can.create_rectangle(lg * cell_size, c * cell_size, (lg+1)*cell_size, (c+1)*cell_size, fill="white")
-
+                can.create_rectangle(lg * cell_size, c * cell_size, (lg + 1) * cell_size, (c + 1) * cell_size,
+                                     fill="black", width=5)
+            # elif matrix[lg][c] == 0:
+            #   can.create_line(lg * cell_size, c * cell_size, (lg+1)*cell_size, (c+1)*cell_size, fill="white", width=5)
 
 
 def cvbn(a, nbit):
@@ -90,17 +92,44 @@ def cvbn(a, nbit):
     bnr = x[::-1]
     return bnr
 
+def float_to_bin(num):
+    bits, = struct.unpack('!I', struct.pack('!f', num))
+    return "{:032b}".format(bits)
+
+
+# cell size => convert to binary
+# msg length => convert size to binary
+# first bit position => i = head size / matrix size, j = head size % matrix size
+
+def create_head(input_message):
+    l_head = 32 + 8 + 8 + 8
+    l = len(input_message)
+    cell_size = calculate_cell_size(500, l+l_head)
+    cell_sise_bnr = float_to_bin(cell_size) #32 bits
+    msg_length_bnr = cvbn(l, 8)             #8 bits
+    matrix_size = math.floor(math.sqrt(l+l_head)) + 2
+    print("matrix size", matrix_size)
+    fst_bit_position_x, fst_bit_position_y = l_head // matrix_size , l_head % matrix_size #8 bits + 8 bits
+    print("cell_sise_bnr", cell_sise_bnr)
+    print("msg_length_bnr", msg_length_bnr)
+    print("fst_bit_position_x", (fst_bit_position_x, 8))
+    print("fst_bit_position_y", (fst_bit_position_y, 8))
+    return cell_sise_bnr + msg_length_bnr + cvbn(fst_bit_position_x, 8) + cvbn(fst_bit_position_y, 8)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     window = Tk()
     canvas = Canvas(window, height=500, width=500)
-    string = "oussama"
+    string: str = "b"
+
+
     binarystring = convert_string(string)
+    head = create_head(binarystring)
     print(binarystring)
-    matrix = create_matrix(len(string), binarystring)
+
+    matrix = create_matrix(binarystring+head)
     print(matrix)
+
     draw_matrix(matrix, canvas)
     canvas.pack()
     window.mainloop()
-
