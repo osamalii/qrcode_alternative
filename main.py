@@ -4,44 +4,40 @@ import PySimpleGUI as sg
 from tkinter import *
 
 
-def convert_string(string):
-    for e in string:
+def convert_string(input_string):
+    output = ""
+    for e in input_string:
         bnr = cvbn(ord(e), 8)
-        print(bnr)
         r = ["X"] * 12
         ii = 0
         for rr in range(len(r)):
             if rr != 4 and rr != 8 and rr != 10 and rr != 11:
                 r[rr] = bnr[ii]
                 ii = ii + 1
-        print("".join(r))
+        output += set_control_bits("".join(r))
+    return output
 
 
 def set_control_bits(sqc):
-    print(sqc)
     sqcrev = sqc[::-1]
     mat = []
     for j in range(len(sqcrev)):
         if sqcrev[j] == "1":
-            print(list(cvbn(j+1, 4)))
-            mat.append(list(cvbn(j+1, 4)))
+            mat.append(list(cvbn(j + 1, 4)))
     s = 0
-    print(mat)
     z = []
+    listsq = list(sqc)
     for j in range(4):
         for i in range(len(mat)):
             s = s + int(mat[i][j])
-        z.append(s%2)
+        z.append(s % 2)
         s = 0
-    print(z)
-
-
-
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    listsq[4] = z[0]
+    listsq[8] = z[1]
+    listsq[10] = z[2]
+    listsq[11] = z[3]
+    listsq = map(lambda x: str(x), listsq)
+    return "".join(listsq)
 
 
 def calculate_cell_size(l, strl):
@@ -68,14 +64,12 @@ def cvbn(a, nbit):
     bnr = x[::-1]
     return bnr
 
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
     window = Tk()
     canvas = Canvas(window, height=500, width=500)
     string = "leau"
-    convert_string(string)
-    print(cvbn(12, 4))
-    set_control_bits("1101X000X1XX")
+    binarystring = convert_string(string)
+    print(binarystring)
 
-# String length
