@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 import PySimpleGUI as sg
 from tkinter import *
 
@@ -44,15 +44,41 @@ def calculate_cell_size(l, strl):
     return l / strl
 
 
-def create_matrix(string_length):
+def create_matrix(string_length, sqc):
+    listsqc = list(sqc)
+    print(listsqc)
+    k = 0
     matrix_size = math.floor(math.sqrt(string_length * 12)) + 2
-    cell_size = calculate_cell_size(500, string_length)
     print(matrix_size)
-    matrix = []
+    matrix = np.zeros((matrix_size, matrix_size))
     for i in range(matrix_size):
-        matrix[i] = []
         for j in range(matrix_size):
-            matrix[i][j] = 1
+            if j == 0 or j == matrix_size - 1:
+                matrix[i][j] = 0
+            if i == 0 or i == matrix_size - 1:
+                matrix[i][j] = 0
+        matrix[0][0] = 1
+    for i in range(1, matrix_size-1,1):
+        for j in range(1, matrix_size-1,1):
+            if k <= len(listsqc):
+                matrix[i][j] = listsqc[k]
+                k = k + 1
+            else:
+                break
+
+    return matrix
+
+def draw_matrix(matrix, can):
+    cell_size = calculate_cell_size(500, len(matrix))
+    print(cell_size)
+    lgx, lgy, cx, cy = 0, 0, 0, 0
+    for lg in range(len(matrix)):
+        for c in range(len(matrix)):
+            if matrix[lg][c] == 1:
+                can.create_rectangle(lg * cell_size, c * cell_size, (lg+1)*cell_size, (c+1)*cell_size, fill="black")
+            elif matrix[lg][c] == 0:
+                can.create_rectangle(lg * cell_size, c * cell_size, (lg+1)*cell_size, (c+1)*cell_size, fill="white")
+
 
 
 def cvbn(a, nbit):
@@ -69,7 +95,12 @@ def cvbn(a, nbit):
 if __name__ == '__main__':
     window = Tk()
     canvas = Canvas(window, height=500, width=500)
-    string = "leau"
+    string = "oussama"
     binarystring = convert_string(string)
     print(binarystring)
+    matrix = create_matrix(len(string), binarystring)
+    print(matrix)
+    draw_matrix(matrix, canvas)
+    canvas.pack()
+    window.mainloop()
 
